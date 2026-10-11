@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -8,14 +8,64 @@ import Products from "./pages/Products";
 import About from "./pages/About";
 import Cart from "./pages/Cart";
 import Contact from "./pages/Contact";
-import Login from "./pages/Login";
 
 function App() {
-  const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem("techstore-cart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch {
+      return [];
+    }
+  });
 
-  function handleAddToCart() {
-    setCartCount((currentCount) => currentCount + 1);
+  useEffect(() => {
+    localStorage.setItem("techstore-cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  function handleAddToCart(product) {
+    if (!product || product.id == null) {
+      console.error("A product with an id is required to add it to the cart.");
+      return;
+    }
+
+    setCartItems((currentItems) => {
+      const existingItem = currentItems.find(
+        (item) => item.id === product.id
+      );
+
+      if (existingItem) {
+        return currentItems.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+
+      return [...currentItems, { ...product, quantity: 1 }];
+    });
   }
+
+  function handleRemoveFromCart(productId) {
+    setCartItems((currentItems) =>
+      currentItems.filter((item) => item.id !== productId)
+    );
+  }
+
+  function handleUpdateQuantity(productId, quantity) {
+    if (quantity < 1) return;
+
+    setCartItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === productId ? { ...item, quantity } : item
+      )
+    );
+  }
+
+  const cartCount = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   return (
     <div className="app">
@@ -34,8 +84,17 @@ function App() {
 
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/login" element={<Login />} />
+
+        <Route
+          path="/cart"
+          element={
+            <Cart
+              cartItems={cartItems}
+              onRemoveFromCart={handleRemoveFromCart}
+              onUpdateQuantity={handleUpdateQuantity}
+            />
+          }
+        />
       </Routes>
 
       <Footer />
@@ -44,3 +103,4 @@ function App() {
 }
 
 export default App;
+ 

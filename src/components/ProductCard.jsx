@@ -6,7 +6,6 @@ function ProductCard({ product, onAddToCart }) {
     <article className="product-card">
       <div className="product-image-wrapper">
         <span className="product-category">{product.category}</span>
-
         <img src={product.image} alt={product.name} loading="lazy" />
       </div>
 
@@ -20,9 +19,9 @@ function ProductCard({ product, onAddToCart }) {
         <p>{product.description}</p>
 
         <div className="product-footer">
-          <strong>${product.price.toLocaleString()}</strong>
+          <strong>${Number(product.price).toLocaleString()}</strong>
 
-          <button onClick={onAddToCart}>
+          <button onClick={() => onAddToCart(product)}>
             <ShoppingBag size={17} />
             Add to cart
           </button>
